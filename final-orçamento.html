@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gerador de Orçamentos</title>
+  <!-- Fonte Anton -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+
+  <!-- Biblioteca html2canvas -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <style>
+    /* Fonte Anton em todo o documento, com espaçamento entre letras */
+    body {
+      margin: 20px;
+      background: #f7f7f7;
+      font-family: 'Anton', sans-serif;
+      letter-spacing: 1.2px;
+    }
+    h1 {
+      font-weight: 700;
+    }
+
+    /* Formulário */
+    .form-campos label {
+      display: block;
+      margin: 8px 0 4px;
+      font-weight: 700;
+    }
+    .form-campos input {
+      width: 300px;
+      padding: 6px;
+      margin-bottom: 10px;
+      font-weight: 400;
+    }
+    .btn-gerar {
+      padding: 10px 20px;
+      background: #28a745;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .btn-gerar:hover {
+      background: #218838;
+    }
+
+    /* Container da imagem do orçamento */
+    .orcamento-container {
+      position: relative;
+      width: 600px;
+      height: 600px;
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      overflow: hidden;
+    }
+    .bg-image {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      object-fit: cover;
+    }
+
+    /* Tipo de Trabalho (centralizado, sem quebra de linha) */
+    .tipo-trabalho {
+      position: absolute;
+      top: 145px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #fff;
+      font-size: 36px;
+      font-weight: 400;
+      white-space: nowrap;
+      max-width: 550px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
+    }
+
+    .valor-container {
+      position: absolute;
+      top: 220px;
+      left: 29%;
+      font-size: 90px;
+      display: flex;
+      align-items: center;
+      color: #fff;
+      font-weight: 400;
+      text-align: left;
+    }
+    /* Informações adicionais */
+    .info-container {
+      position: absolute;
+      top: 360px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 400px;
+      text-align: left;
+    }
+    .info-line {
+      margin: 16px 0;
+      font-size: 24px;
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+
+    /* Rótulos e texto normal */
+    .label-bold {
+      font-weight: 400;
+      color: #fff;
+      margin-right: 5px;
+    }
+    .text-normal {
+      font-weight: 400;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Gerador de Orçamentos</h1>
+
+  <div class="form-campos">
+    <label for="inputTipoTrabalho">Tipo do Trabalho:</label>
+    <input type="text" id="inputTipoTrabalho" placeholder="Ex: Monografia" />
+    
+    <label for="inputValor">Valor (sem R$):</label>
+    <input type="text" id="inputValor" placeholder="Ex: 350,00" />
+    
+    <label for="inputCurso">Curso:</label>
+    <input type="text" id="inputCurso" placeholder="Ex: Direito" />
+    
+    <label for="inputTema">Tema:</label>
+    <input type="text" id="inputTema" placeholder="Ex: Tema Random" />
+    
+    <label for="inputPaginas">Número de Páginas:</label>
+    <input type="text" id="inputPaginas" placeholder="Ex: 20" />
+    
+    <label for="inputData">Data da Entrega Final:</label>
+    <input type="date" id="inputData" />
+  </div>
+
+  <button class="btn-gerar" onclick="gerarImagem()">Gerar Imagem e Copiar</button>
+
+  <div class="orcamento-container" id="orcamentoContainer">
+    <img src="img/bg_1.jpg" alt="Orçamento" class="bg-image" />
+
+    <!-- Tipo de Trabalho -->
+    <div class="tipo-trabalho" id="tipoTrabalho"></div>
+    
+    <!-- Valor -->
+    <div class="valor-container">
+      <span id="valorText"></span>
+    </div>
+
+    <!-- Informações adicionais -->
+    <div class="info-container">
+      <div class="info-line">
+        <span class="label-bold">Curso:</span>
+        <span id="cursoText" class="text-normal"></span>
+      </div>
+      <div class="info-line">
+        <span class="label-bold">Tema:</span>
+        <span id="temaText" class="text-normal"></span>
+      </div>
+      <div class="info-line">
+        <span class="label-bold">Nº de páginas:</span>
+        <span id="numPagText" class="text-normal"></span>
+      </div>
+      <div class="info-line">
+        <span class="label-bold">Data da entrega final:</span>
+        <span id="dataText" class="text-normal"></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Referências aos elementos
+    const tipoTrabalhoEl = document.getElementById('tipoTrabalho');
+    const valorTextEl    = document.getElementById('valorText');
+    const cursoTextEl    = document.getElementById('cursoText');
+    const temaTextEl     = document.getElementById('temaText');
+    const numPagTextEl   = document.getElementById('numPagText');
+    const dataTextEl     = document.getElementById('dataText');
+
+    const inputTipoTrabalho = document.getElementById('inputTipoTrabalho');
+    const inputValor        = document.getElementById('inputValor');
+    const inputCurso        = document.getElementById('inputCurso');
+    const inputTema         = document.getElementById('inputTema');
+    const inputPaginas      = document.getElementById('inputPaginas');
+    const inputData         = document.getElementById('inputData');
+
+    // Formata valor no padrão brasileiro (ex.: 1.250,00)
+    function formatarValorBR(valor) {
+      let v = valor.replace(/\D/g, '');
+      if (!v) return '';
+      v = (parseFloat(v) / 100).toFixed(2).replace('.', ',');
+      const [inteira, decimal] = v.split(',');
+      return inteira.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + decimal;
+    }
+
+    // Atualiza os campos na imagem conforme o usuário digita
+    inputTipoTrabalho.addEventListener('input', () => {
+      tipoTrabalhoEl.textContent = inputTipoTrabalho.value;
+    });
+    inputValor.addEventListener('input', () => {
+      const vf = formatarValorBR(inputValor.value);
+      inputValor.value = vf;
+      valorTextEl.textContent = vf;
+    });
+    inputCurso.addEventListener('input', () => {
+      cursoTextEl.textContent = inputCurso.value;
+    });
+    inputTema.addEventListener('input', () => {
+      temaTextEl.textContent = inputTema.value;
+    });
+    inputPaginas.addEventListener('input', () => {
+      numPagTextEl.textContent = inputPaginas.value;
+    });
+    inputData.addEventListener('change', () => {
+      const dateValue = inputData.value; // formato YYYY-MM-DD
+      if(dateValue) {
+        const parts = dateValue.split('-');
+        const formattedDate = parts[2] + '/' + parts[1] + '/' + parts[0];
+        dataTextEl.textContent = formattedDate;
+      }
+    });
+
+    // Função para gerar a imagem final com html2canvas e copiar para a área de transferência
+    function gerarImagem() {
+      html2canvas(document.getElementById('orcamentoContainer'), { scale: 1 }).then(canvas => {
+        canvas.toBlob(function(blob) {
+          const item = new ClipboardItem({ 'image/png': blob });
+          navigator.clipboard.write([item]).then(function() {
+            alert('Imagem copiada para a área de transferência!');
+          }, function(err) {
+            alert('Falha ao copiar a imagem. Baixando arquivo.');
+            const link = document.createElement('a');
+            link.download = 'orcamento.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+          });
+        });
+      });
+    }
+  </script>
+</body>
+</html>
